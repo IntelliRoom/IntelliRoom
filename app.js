@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 import { firebaseConfig } from "../firebase/firebaseConfig.js";
 
 // Initialize Firebase
@@ -59,3 +59,4 @@ document.getElementById("fanOn").addEventListener("click", function() {
 document.getElementById("fanOff").addEventListener("click", function() {
     set(manualFanStateRef, false);
 });
+
