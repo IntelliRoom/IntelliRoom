@@ -1,16 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 import { firebaseConfig } from "../firebase/firebaseConfig.js";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// References to Firebase paths
-const tempRef = ref(db, "intelliroom/temperature");
-const fanRef = ref(db, "intelliroom/fanStatus");
-const manualModeRef = ref(db, "intelliroom/manualMode");
-const manualFanStateRef = ref(db, "intelliroom/manualFanState");
+// References to Firebase paths (matching ESP32)
+const tempRef = ref(db, "/intelliroom/temperature");
+const fanRef = ref(db, "/intelliroom/fanStatus");
+const manualModeRef = ref(db, "/intelliroom/manualMode");
+const manualFanStateRef = ref(db, "/intelliroom/manualFanState");
+const currentModeRef = ref(db, "/intelliroom/currentModeIsManual");
 
 // -------------------------------
 // Real-time updates
@@ -58,4 +59,3 @@ document.getElementById("fanOn").addEventListener("click", function() {
 document.getElementById("fanOff").addEventListener("click", function() {
     set(manualFanStateRef, false);
 });
-
