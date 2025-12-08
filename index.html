@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>INTELLIROOM Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>IntelliRoom Smart Temperature Manager</h1>
+
+<div class="card">
+    <h2>Temperature</h2>
+    <h1 id="temp">-- °C</h1>
+</div>
+
+<div class="card">
+    <h2>Fan Status</h2>
+    <h1 id="fanStatus">OFF</h1>
+</div>
+
+<div class="card">
+    <h2>Control Mode</h2>
+    <label>
+        <input type="checkbox" id="toggleMode">
+        Manual Mode
+    </label>
+</div>
+
+<div class="card">
+    <h2>Manual Fan Control</h2>
+    <button id="fanOn">Turn Fan ON</button>
+    <button id="fanOff">Turn Fan OFF</button>
+</div>
+
+<script src="firebaseConfig.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
