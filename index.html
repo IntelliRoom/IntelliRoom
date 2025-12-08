@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ADD THIS LINE -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INTELLIROOM Dashboard</title>
 
     <!-- Google Fonts -->
@@ -11,55 +11,54 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-   
     <style>
         body {
             font-family: 'Roboto', sans-serif;
             background: #0f0f1f;
             margin: 0;
-            padding: 50px 20px;
+            padding: 30px 15px;
             color: #fff;
         }
 
         h1 {
             text-align: center;
-            font-size: 38px;
+            font-size: 36px;
             font-weight: 700;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             color: #00d4ff;
             text-shadow: 0 0 10px #00d4ff;
         }
 
         .dashboard-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
             max-width: 1200px;
             margin: auto;
         }
 
         .card {
             background: #1c1c2c;
-            border-radius: 18px;
-            padding: 25px;
+            border-radius: 16px;
+            padding: 20px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.8);
         }
 
         .icon i {
-            font-size: 50px;
+            font-size: 45px;
             color: #00d4ff;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .value {
-            font-size: 42px;
+            font-size: 38px;
             font-weight: 700;
             margin: 10px 0;
         }
@@ -73,7 +72,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
         }
 
@@ -85,16 +84,16 @@
         }
 
         .btn-group {
-            margin-top: 15px;
+            margin-top: 12px;
         }
 
         .btn {
-            padding: 12px 22px;
-            margin: 6px;
+            padding: 10px 20px;
+            margin: 5px;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.25s ease;
         }
@@ -105,9 +104,9 @@
         .btn-red:hover { background: #e63950; }
 
         .card h2 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -169,47 +168,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// References
+// Database references
 const tempRef = ref(db, "intelliroom/temperature");
 const fanRef = ref(db, "intelliroom/fanStatus");
 const manualModeRef = ref(db, "intelliroom/manualMode");
 const manualFanStateRef = ref(db, "intelliroom/manualFanState");
 
-// Realtime temperature
+// Real-time updates
 onValue(tempRef, snapshot => {
     const temp = snapshot.val();
     if(temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
 });
 
-// Realtime fan status
 onValue(fanRef, snapshot => {
     const status = snapshot.val();
     if(status !== null) document.getElementById("fanStatus").innerText = status;
 });
 
-// Sync toggle with manualMode
 onValue(manualModeRef, snapshot => {
     const mode = snapshot.val();
     if(mode !== null) document.getElementById("toggleMode").checked = mode;
 });
 
-// Toggle mode checkbox
+// Toggle manual mode
 document.getElementById("toggleMode").addEventListener("change", function() {
     set(manualModeRef, this.checked);
 });
 
-// Manual fan ON
-document.getElementById("fanOn").addEventListener("click", () => {
-    set(manualFanStateRef, true);
-});
+// Manual fan controls
+document.getElementById("fanOn").addEventListener("click", () => set(manualFanStateRef, true));
+document.getElementById("fanOff").addEventListener("click", () => set(manualFanStateRef, false));
 
-// Manual fan OFF
-document.getElementById("fanOff").addEventListener("click", () => {
-    set(manualFanStateRef, false);
-});
 </script>
 
 </body>
 </html>
-
-
