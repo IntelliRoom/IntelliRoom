@@ -1,20 +1,85 @@
+/* ------------------------------
+   GLOBAL STYLING
+------------------------------ */
 body {
-    font-family: Arial;
+    font-family: 'Poppins', Arial, sans-serif;
     text-align: center;
-    background: #f0f0f0;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    margin: 0;
+    padding: 0;
+    color: #fff;
 }
 
+/* Page Title */
+h1 {
+    margin-top: 30px;
+    font-size: 36px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+/* ------------------------------
+   CARD STYLING
+------------------------------ */
 .card {
-    width: 300px;
-    background: white;
-    padding: 20px;
-    margin: 20px auto;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #aaa;
+    width: 350px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    padding: 25px;
+    margin: 25px auto;
+    border-radius: 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* Card Hover Effect */
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.28);
+}
+
+/* Card Title */
+.card h2 {
+    margin-bottom: 15px;
+    font-size: 22px;
+    color: #fff;
+}
+
+/* Display values inside cards */
+.card h1 {
+    font-size: 48px;
+    margin: 0;
+    font-weight: bold;
+}
+
+/* ------------------------------
+   BUTTON STYLING
+------------------------------ */
 button {
-    padding: 10px;
-    margin: 5px;
+    padding: 12px 22px;
+    margin: 8px;
     font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #ffffff;
+    color: #2575fc;
+    font-weight: bold;
+    transition: 0.25s ease;
+}
+
+/* Button Hover */
+button:hover {
+    background: #2575fc;
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+/* Toggle Switch (Manual Mode) */
+input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #6a11cb;
 }
