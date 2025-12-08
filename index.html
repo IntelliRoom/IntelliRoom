@@ -1,39 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>INTELLIROOM Dashboard</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>IntelliRoom Smart Temperature Manager</h1>
+    <h1 class="title">IntelliRoom Smart Temperature Manager</h1>
 
-<div class="card">
-    <h2>Temperature</h2>
-    <h1 id="temp">-- °C</h1>
-</div>
+    <div class="dashboard-container">
 
-<div class="card">
-    <h2>Fan Status</h2>
-    <h1 id="fanStatus">OFF</h1>
-</div>
+        <!-- Temperature Card -->
+        <div class="card">
+            <div class="icon"><i class="fas fa-temperature-high"></i></div>
+            <h2>Temperature</h2>
+            <p id="temp" class="value">-- °C</p>
+        </div>
 
-<div class="card">
-    <h2>Control Mode</h2>
-    <label>
-        <input type="checkbox" id="toggleMode">
-        Manual Mode
-    </label>
-</div>
+        <!-- Fan Status Card -->
+        <div class="card">
+            <div class="icon"><i class="fas fa-fan"></i></div>
+            <h2>Fan Status</h2>
+            <p id="fanStatus" class="value status">OFF</p>
+        </div>
 
-<div class="card">
-    <h2>Manual Fan Control</h2>
-    <button id="fanOn">Turn Fan ON</button>
-    <button id="fanOff">Turn Fan OFF</button>
-</div>
+        <!-- Mode Control Card -->
+        <div class="card">
+            <div class="icon"><i class="fas fa-sliders-h"></i></div>
+            <h2>Control Mode</h2>
+            <label class="toggleLabel">
+                <input type="checkbox" id="toggleMode" class="toggleSwitch">
+                <span>Manual Mode</span>
+            </label>
+        </div>
 
-<script src="firebaseConfig.js"></script>
-<script src="app.js"></script>
+        <!-- Manual Control Card -->
+        <div class="card">
+            <div class="icon"><i class="fas fa-hand-pointer"></i></div>
+            <h2>Manual Fan Control</h2>
+            <div class="btn-group">
+                <button id="fanOn" class="btn btn-green">Turn Fan ON</button>
+                <button id="fanOff" class="btn btn-red">Turn Fan OFF</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="firebaseConfig.js"></script>
+    <script src="app.js"></script>
 
 </body>
 </html>
