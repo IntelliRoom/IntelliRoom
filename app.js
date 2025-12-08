@@ -1,42 +1,60 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getDatabase, ref, onValue, set } 
-    from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
-
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
 import { firebaseConfig } from "../firebase/firebaseConfig.js";
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// References
+// References to Firebase paths
 const tempRef = ref(db, "intelliroom/temperature");
 const fanRef = ref(db, "intelliroom/fanStatus");
 const manualModeRef = ref(db, "intelliroom/manualMode");
 const manualFanStateRef = ref(db, "intelliroom/manualFanState");
 
-// Realtime temperature
+// -------------------------------
+// Real-time updates
+// -------------------------------
+
+// Temperature
 onValue(tempRef, (snapshot) => {
-    document.getElementById("temp").innerText = snapshot.val() + " °C";
+    const temp = snapshot.val();
+    if (temp !== null) {
+        document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+    }
 });
 
-// Realtime fan status
+// Fan status
 onValue(fanRef, (snapshot) => {
-    document.getElementById("fanStatus").innerText = snapshot.val();
+    const status = snapshot.val();
+    if (status !== null) {
+        document.getElementById("fanStatus").innerText = status;
+    }
 });
 
-// Toggle mode
-document.getElementById("toggleMode")
-    .addEventListener("change", function() {
-        set(manualModeRef, this.checked);
-    });
+// Sync toggle with manualMode
+onValue(manualModeRef, (snapshot) => {
+    const mode = snapshot.val();
+    if (mode !== null) {
+        document.getElementById("toggleMode").checked = mode;
+    }
+});
 
-// Manual ON
-document.getElementById("fanOn")
-    .addEventListener("click", function() {
-        set(manualFanStateRef, true);
-    });
+// -------------------------------
+// Event listeners
+// -------------------------------
 
-// Manual OFF
-document.getElementById("fanOff")
-    .addEventListener("click", function() {
-        set(manualFanStateRef, false);
-    });
+// Toggle mode checkbox
+document.getElementById("toggleMode").addEventListener("change", function() {
+    set(manualModeRef, this.checked);
+});
+
+// Manual fan ON
+document.getElementById("fanOn").addEventListener("click", function() {
+    set(manualFanStateRef, true);
+});
+
+// Manual fan OFF
+document.getElementById("fanOff").addEventListener("click", function() {
+    set(manualFanStateRef, false);
+});
