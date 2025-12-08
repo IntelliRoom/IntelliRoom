@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        /* GLOBAL STYLES */
         body {
             font-family: 'Roboto', sans-serif;
             background: #0f0f1f;
@@ -29,7 +28,6 @@
             text-shadow: 0 0 10px #00d4ff;
         }
 
-        /* DASHBOARD GRID */
         .dashboard-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -38,7 +36,6 @@
             margin: auto;
         }
 
-        /* CARD DESIGN */
         .card {
             background: #1c1c2c;
             border-radius: 18px;
@@ -69,7 +66,6 @@
             color: #ff6b6b;
         }
 
-        /* TOGGLE SWITCH */
         .toggleLabel {
             display: flex;
             align-items: center;
@@ -86,7 +82,6 @@
             cursor: pointer;
         }
 
-        /* BUTTONS */
         .btn-group {
             margin-top: 15px;
         }
@@ -102,78 +97,115 @@
             transition: all 0.25s ease;
         }
 
-        .btn-green {
-            background: #00ff95;
-            color: #0a0a0a;
-        }
+        .btn-green { background: #00ff95; color: #0a0a0a; }
+        .btn-green:hover { background: #00cc77; }
+        .btn-red { background: #ff4d6d; color: #fff; }
+        .btn-red:hover { background: #e63950; }
 
-        .btn-green:hover {
-            background: #00cc77;
-        }
-
-        .btn-red {
-            background: #ff4d6d;
-            color: #fff;
-        }
-
-        .btn-red:hover {
-            background: #e63950;
-        }
-
-        /* SMALL CARD TITLES */
         .card h2 {
             font-size: 22px;
             font-weight: 600;
             margin-bottom: 10px;
         }
-
     </style>
 </head>
 <body>
 
-    <h1>IntelliRoom Dashboard</h1>
+<h1>IntelliRoom Dashboard</h1>
 
-    <div class="dashboard-container">
+<div class="dashboard-container">
 
-        <!-- Temperature Card -->
-        <div class="card">
-            <div class="icon"><i class="fas fa-temperature-high"></i></div>
-            <h2>Temperature</h2>
-            <p id="temp" class="value">-- °C</p>
-        </div>
-
-        <!-- Fan Status Card -->
-        <div class="card">
-            <div class="icon"><i class="fas fa-fan"></i></div>
-            <h2>Fan Status</h2>
-            <p id="fanStatus" class="value status">OFF</p>
-        </div>
-
-        <!-- Mode Control Card -->
-        <div class="card">
-            <div class="icon"><i class="fas fa-sliders-h"></i></div>
-            <h2>Control Mode</h2>
-            <label class="toggleLabel">
-                <input type="checkbox" id="toggleMode" class="toggleSwitch">
-                Manual Mode
-            </label>
-        </div>
-
-        <!-- Manual Fan Control Card -->
-        <div class="card">
-            <div class="icon"><i class="fas fa-hand-pointer"></i></div>
-            <h2>Manual Fan Control</h2>
-            <div class="btn-group">
-                <button id="fanOn" class="btn btn-green">Turn ON</button>
-                <button id="fanOff" class="btn btn-red">Turn OFF</button>
-            </div>
-        </div>
-
+    <!-- Temperature Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-temperature-high"></i></div>
+        <h2>Temperature</h2>
+        <p id="temp" class="value">-- °C</p>
     </div>
 
-    <!-- JS Scripts -->
-    <script src="firebaseConfig.js"></script>
-    <script src="app.js"></script>
+    <!-- Fan Status Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-fan"></i></div>
+        <h2>Fan Status</h2>
+        <p id="fanStatus" class="value status">OFF</p>
+    </div>
+
+    <!-- Mode Control Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-sliders-h"></i></div>
+        <h2>Control Mode</h2>
+        <label class="toggleLabel">
+            <input type="checkbox" id="toggleMode" class="toggleSwitch">
+            Manual Mode
+        </label>
+    </div>
+
+    <!-- Manual Fan Control Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-hand-pointer"></i></div>
+        <h2>Manual Fan Control</h2>
+        <div class="btn-group">
+            <button id="fanOn" class="btn btn-green">Turn ON</button>
+            <button id="fanOff" class="btn btn-red">Turn OFF</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Firebase & App JS -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
+
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc",
+    databaseURL: "https://intelliroom-50474-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    projectId: "intelliroom-50474"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// References
+const tempRef = ref(db, "intelliroom/temperature");
+const fanRef = ref(db, "intelliroom/fanStatus");
+const manualModeRef = ref(db, "intelliroom/manualMode");
+const manualFanStateRef = ref(db, "intelliroom/manualFanState");
+
+// Realtime temperature
+onValue(tempRef, snapshot => {
+    const temp = snapshot.val();
+    if(temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+});
+
+// Realtime fan status
+onValue(fanRef, snapshot => {
+    const status = snapshot.val();
+    if(status !== null) document.getElementById("fanStatus").innerText = status;
+});
+
+// Sync toggle with manualMode
+onValue(manualModeRef, snapshot => {
+    const mode = snapshot.val();
+    if(mode !== null) document.getElementById("toggleMode").checked = mode;
+});
+
+// Toggle mode checkbox
+document.getElementById("toggleMode").addEventListener("change", function() {
+    set(manualModeRef, this.checked);
+});
+
+// Manual fan ON
+document.getElementById("fanOn").addEventListener("click", () => {
+    set(manualFanStateRef, true);
+});
+
+// Manual fan OFF
+document.getElementById("fanOff").addEventListener("click", () => {
+    set(manualFanStateRef, false);
+});
+</script>
 
 </body>
 </html>
