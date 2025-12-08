@@ -5,13 +5,132 @@
     <title>INTELLIROOM Dashboard</title>
 
     <!-- Google Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* GLOBAL STYLES */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e1e2f, #282846, #1b1b2d);
+            background-size: 300% 300%;
+            animation: gradientMove 10s ease infinite;
+            color: white;
+            margin: 0;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        @keyframes gradientMove {
+            0%,100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* TITLE */
+        .title {
+            font-size: 35px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        /* DASHBOARD GRID */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            width: 90%;
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        /* CARD DESIGN */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 25px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.35);
+        }
+
+        /* ICON */
+        .icon i {
+            font-size: 45px;
+            margin-bottom: 12px;
+            color: #4be1ec;
+            text-shadow: 0 0 10px #4be1ec;
+        }
+
+        /* VALUE DISPLAY */
+        .value {
+            font-size: 45px;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+
+        /* FAN STATUS COLOR */
+        .status {
+            color: #ff4d6d;
+        }
+
+        /* TOGGLE SWITCH */
+        .toggleLabel {
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .toggleSwitch {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #4be1ec;
+        }
+
+        /* BUTTON GROUP */
+        .btn-group {
+            margin-top: 15px;
+        }
+
+        /* BUTTON BASE STYLE */
+        .btn {
+            padding: 12px 20px;
+            margin: 6px;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.25s;
+        }
+
+        /* BUTTON COLORS */
+        .btn-green {
+            background: #4be1a0;
+            color: #000;
+        }
+
+        .btn-green:hover {
+            background: #35c47f;
+        }
+
+        .btn-red {
+            background: #ff4d6d;
+            color: white;
+        }
+
+        .btn-red:hover {
+            background: #e63950;
+        }
+    </style>
 </head>
 
 <body>
@@ -56,6 +175,7 @@
 
     </div>
 
+    <!-- Firebase + JS Scripts -->
     <script src="firebaseConfig.js"></script>
     <script src="app.js"></script>
 
