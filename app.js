@@ -1,21 +1,30 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { 
+    getDatabase, 
+    ref, 
+    set, 
+    onValue 
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
 import { firebaseConfig } from "../firebase/firebaseConfig.js";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// References to Firebase paths (matching ESP32)
+// Firebase references
 const tempRef = ref(db, "/intelliroom/temperature");
 const fanRef = ref(db, "/intelliroom/fanStatus");
 const manualModeRef = ref(db, "/intelliroom/manualMode");
 const manualFanStateRef = ref(db, "/intelliroom/manualFanState");
-const currentModeRef = ref(db, "/intelliroom/currentModeIsManual");
 
-// -------------------------------
-// Real-time updates
-// -------------------------------
+// NEW: Temperature logs reference
+const logsRef = ref(db, "/temperatureLogs");
+
+
+// ------------------------------------------------
+// Realtime Updates
+// ------------------------------------------------
 
 // Temperature
 onValue(tempRef, (snapshot) => {
@@ -33,7 +42,7 @@ onValue(fanRef, (snapshot) => {
     }
 });
 
-// Sync toggle with manualMode
+// Manual/Auto Mode toggle
 onValue(manualModeRef, (snapshot) => {
     const mode = snapshot.val();
     if (mode !== null) {
@@ -41,9 +50,10 @@ onValue(manualModeRef, (snapshot) => {
     }
 });
 
-// -------------------------------
-// Event listeners
-// -------------------------------
+
+// ------------------------------------------------
+// Manual Fan Controls
+// ------------------------------------------------
 
 // Toggle mode checkbox
 document.getElementById("toggleMode").addEventListener("change", function() {
@@ -60,3 +70,34 @@ document.getElementById("fanOff").addEventListener("click", function() {
     set(manualFanStateRef, false);
 });
 
+
+// ------------------------------------------------
+// NEW: Temperature Log History Loader
+// ------------------------------------------------
+
+onValue(logsRef, (snapshot) => {
+    const data = snapshot.val();
+    const table = document.getElementById("logTable");
+
+    if (!table) return; // index.php safety
+
+    table.innerHTML = "";
+
+    if (data) {
+        // Loop through date → time → temperature
+        Object.keys(data).forEach(date => {
+            Object.keys(data[date]).forEach(time => {
+
+                const temp = data[date][time];
+
+                table.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${time}</td>
+                        <td>${temp} °C</td>
+                    </tr>
+                `;
+            });
+        });
+    }
+});
