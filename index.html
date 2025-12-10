@@ -1,170 +1,260 @@
-#include <WiFi.h>
-#include <FirebaseESP32.h>
-#include "DHT.h"
-#include "time.h"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>INTELLIROOM Dashboard</title>
 
-// -----------------------------
-// Wi-Fi
-// -----------------------------
-#define WIFI_SSID "ZTE_2.4G_kmjuMc"
-#define WIFI_PASSWORD "xsY6Mhdi"
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 
-// -----------------------------
-// Firebase
-// -----------------------------
-#define API_KEY "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc"
-#define DATABASE_URL "https://intelliroom-50474-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-// -----------------------------
-// Pins
-// -----------------------------
-#define DHTPIN 4
-#define DHTTYPE DHT11
-#define RELAY_PIN 5
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0f0f1f;
+            margin: 0;
+            padding: 50px 20px;
+            color: #fff;
+        }
 
-DHT dht(DHTPIN, DHTTYPE);
-FirebaseData fbdo;
-FirebaseAuth auth;
-FirebaseConfig config;
+        h1 {
+            text-align: center;
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 50px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff;
+        }
 
-// -----------------------------
-// Variables
-// -----------------------------
-float temperature;
-bool manualMode = false;
-bool manualFanState = false;
-int TEMP_THRESHOLD = 30;
-float lastTemp = -100;
-bool lastFanState = false;
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
 
-// Logging timer
-unsigned long lastLogTime = 0;
-const unsigned long LOG_INTERVAL = 60000; // 1 minute logging interval
+        .card {
+            background: #1c1c2c;
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+        }
 
-// -----------------------------
-// NTP Time
-// -----------------------------
-const char* ntpServer = "time.google.com";
-const long gmtOffset_sec = 8 * 3600;  // GMT+8
-const int daylightOffset_sec = 0;
+        .icon i {
+            font-size: 50px;
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
 
-// -----------------------------
-// Get timestamp function
-// -----------------------------
-String getTimestamp() {
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    return "unknown-time";
-  }
+        .value {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
 
-  char buffer[25];
-  strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
-  return String(buffer);
-}
+        .toggleLabel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .toggleSwitch {
+            width: 22px;
+            height: 22px;
+            accent-color: #00d4ff;
+            cursor: pointer;
+        }
 
-// -----------------------------
-// Setup
-// -----------------------------
-void setup() {
-  Serial.begin(115200);
-  dht.begin();
+        .btn-group { margin-top: 15px; }
 
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);
+        .btn {
+            padding: 12px 22px;
+            margin: 6px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .btn-green { background: #00ff95; color: #0a0a0a; }
+        .btn-green:hover { background: #00cc77; }
+        .btn-red { background: #ff4d6d; color: #fff; }
+        .btn-red:hover { background: #e63950; }
 
-  // WiFi
-  Serial.print("Connecting to WiFi");
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nConnected to WiFi!");
+        .history-title {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 32px;
+            color: #00d4ff;
+        }
 
-  // Sync NTP
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  struct tm timeinfo;
-  while (!getLocalTime(&timeinfo)) {
-    Serial.println("Waiting for NTP time...");
-    delay(1000);
-  }
-  Serial.println("Time synchronized");
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #1c1c2c;
+            border-radius: 12px;
+            overflow: hidden;
+        }
 
-  // Firebase Setup
-  config.api_key = API_KEY;
-  config.database_url = DATABASE_URL;
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
 
-  Firebase.begin(&config, &auth);
-  Firebase.reconnectWiFi(true);
+        th {
+            background: #00d4ff;
+            color: #000;
+            font-weight: 700;
+        }
 
-  Serial.println("Connected to Firebase");
-}
+        tr:hover {
+            background: #23233a;
+        }
+    </style>
+</head>
+<body>
 
-// -----------------------------
-// Main Loop
-// -----------------------------
-void loop() {
+<h1>IntelliRoom Dashboard</h1>
 
-  // Read temperature
-  temperature = dht.readTemperature();
-  if (isnan(temperature)) {
-    Serial.println("Failed to read DHT11!");
-    delay(1500);
-    return;
-  }
+<div class="dashboard-container">
 
-  Serial.print("Temperature: ");
-  Serial.println(temperature);
+    <!-- Temperature Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-temperature-high"></i></div>
+        <h2>Temperature</h2>
+        <p id="temp" class="value">-- °C</p>
+    </div>
 
-  // Read Firebase manual mode
-  if (Firebase.getBool(fbdo, "/intelliroom/manualMode"))
-    manualMode = fbdo.boolData();
+    <!-- Fan Status Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-fan"></i></div>
+        <h2>Fan Status</h2>
+        <p id="fanStatus" class="value status">OFF</p>
+    </div>
 
-  if (Firebase.getBool(fbdo, "/intelliroom/manualFanState"))
-    manualFanState = fbdo.boolData();
+    <!-- Mode Control Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-sliders-h"></i></div>
+        <h2>Control Mode</h2>
+        <label class="toggleLabel">
+            <input type="checkbox" id="toggleMode" class="toggleSwitch">
+            Manual Mode
+        </label>
+    </div>
 
-  // Automatic or manual fan control
-  bool fanOn = (!manualMode) ? (temperature >= TEMP_THRESHOLD) : manualFanState;
+    <!-- Manual Fan Control Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-hand-pointer"></i></div>
+        <h2>Manual Fan Control</h2>
+        <div class="btn-group">
+            <button id="fanOn" class="btn btn-green">Turn ON</button>
+            <button id="fanOff" class="btn btn-red">Turn OFF</button>
+        </div>
+    </div>
 
-  // Only update when changed
-  if (fanOn != lastFanState) {
-    digitalWrite(RELAY_PIN, fanOn ? HIGH : LOW);
-    Firebase.setString(fbdo, "/intelliroom/fanStatus", fanOn ? "ON" : "OFF");
-    lastFanState = fanOn;
-    Serial.println(fanOn ? "Fan ON" : "Fan OFF");
-  }
+</div>
 
-  // Upload temperature only if changed
-  if (abs(temperature - lastTemp) >= 0.5) {
-    Firebase.setFloat(fbdo, "/intelliroom/temperature", temperature);
-    lastTemp = temperature;
-  }
+<h2 class="history-title">Temperature History Logs</h2>
 
-  // Upload mode
-  Firebase.setBool(fbdo, "/intelliroom/currentModeIsManual", manualMode);
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Temperature (°C)</th>
+        </tr>
+    </thead>
+    <tbody id="logTable"></tbody>
+</table>
 
-  // -----------------------------
-  // Temperature Logging Every 1 Minute
-  // -----------------------------
-  unsigned long currentMillis = millis();
+<!-- Firebase & JS -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getDatabase, ref, set, onValue, update, get, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-  if (currentMillis - lastLogTime >= LOG_INTERVAL) {
-    String timestamp = getTimestamp();
+const firebaseConfig = {
+    apiKey: "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc",
+    authDomain: "intelliroom-50474.firebaseapp.com",
+    databaseURL: "https://intelliroom-50474-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "intelliroom-50474",
+    storageBucket: "intelliroom-50474.firebasestorage.app",
+    messagingSenderId: "391776071622",
+    appId: "1:391776071622:web:e215eb5a58179881654cc7"
+};
 
-    String datePath = timestamp.substring(0, 10); // YYYY-MM-DD
-    String timePath = timestamp.substring(11);    // HH:MM:SS
+// Init Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-    String fullPath = "/temperatureLogs/" + datePath + "/" + timePath;
+// References
+const tempRef = ref(db, "intelliroom/temperature");
+const fanRef = ref(db, "intelliroom/fanStatus");
+const manualModeRef = ref(db, "intelliroom/manualMode");
+const manualFanStateRef = ref(db, "intelliroom/manualFanState");
+const logsRef = ref(db, "temperatureLogs");
 
-    Serial.print("Saving log: ");
-    Serial.print(fullPath);
-    Serial.print(" = ");
-    Serial.println(temperature);
+// ===== REALTIME TEMPERATURE =====
+onValue(tempRef, snapshot => {
+    const temp = snapshot.val();
+    if (temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+});
 
-    Firebase.setFloat(fbdo, fullPath, temperature);
+// ===== REALTIME FAN STATUS =====
+onValue(fanRef, snapshot => {
+    const stat = snapshot.val();
+    document.getElementById("fanStatus").innerText = stat;
+});
 
-    lastLogTime = currentMillis;
-  }
+// ===== SYNC MANUAL MODE TOGGLE =====
+onValue(manualModeRef, snapshot => {
+    document.getElementById("toggleMode").checked = snapshot.val();
+});
 
-  delay(1500);
-}
+// ===== MANUAL MODE CONTROL =====
+document.getElementById("toggleMode").addEventListener("change", function() {
+    set(manualModeRef, this.checked);
+});
+
+// Manual Fan ON / OFF
+document.getElementById("fanOn").addEventListener("click", () => set(manualFanStateRef, true));
+document.getElementById("fanOff").addEventListener("click", () => set(manualFanStateRef, false));
+
+// ===== LOAD TEMPERATURE LOGS =====
+onValue(logsRef, snapshot => {
+    const data = snapshot.val();
+    const table = document.getElementById("logTable");
+    table.innerHTML = "";
+
+    if (data) {
+        Object.keys(data).forEach(date => {
+            Object.keys(data[date]).forEach(time => {
+                const temp = data[date][time];
+                table.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${time}</td>
+                        <td>${temp} °C</td>
+                    </tr>
+                `;
+            });
+        });
+    }
+});
+</script>
+
+</body>
+</html>
