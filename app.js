@@ -6,7 +6,7 @@ import {
     onValue 
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-import { firebaseConfig } from "../firebase/firebaseConfig.js";
+import { firebaseConfig } from "../firebaseConfig.js";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -101,3 +101,4 @@ onValue(logsRef, (snapshot) => {
         });
     }
 });
+
