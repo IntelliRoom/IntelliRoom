@@ -1,103 +1,170 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IntelliRoom Dashboard</title>
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+#include "DHT.h"
+#include "time.h"
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
-        }
+// -----------------------------
+// Wi-Fi
+// -----------------------------
+#define WIFI_SSID "ZTE_2.4G_kmjuMc"
+#define WIFI_PASSWORD "xsY6Mhdi"
 
-        header {
-            background: #4f46e5;
-            padding: 20px;
-            text-align: center;
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-        }
+// -----------------------------
+// Firebase
+// -----------------------------
+#define API_KEY "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc"
+#define DATABASE_URL "https://intelliroom-50474-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 18px rgba(0,0,0,0.1);
-        }
+// -----------------------------
+// Pins
+// -----------------------------
+#define DHTPIN 4
+#define DHTTYPE DHT11
+#define RELAY_PIN 5
 
-        h2 {
-            margin-top: 0;
-            color: #333;
-        }
+DHT dht(DHTPIN, DHTTYPE);
+FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
 
-        .status-box {
-            padding: 20px;
-            background: #eef2ff;
-            border-left: 6px solid #4f46e5;
-            margin-bottom: 20px;
-            border-radius: 8px;
-        }
+// -----------------------------
+// Variables
+// -----------------------------
+float temperature;
+bool manualMode = false;
+bool manualFanState = false;
+int TEMP_THRESHOLD = 30;
+float lastTemp = -100;
+bool lastFanState = false;
 
-        .label {
-            font-weight: bold;
-            color: #444;
-        }
-    </style>
-</head>
+// Logging timer
+unsigned long lastLogTime = 0;
+const unsigned long LOG_INTERVAL = 60000; // 1 minute logging interval
 
-<body>
+// -----------------------------
+// NTP Time
+// -----------------------------
+const char* ntpServer = "time.google.com";
+const long gmtOffset_sec = 8 * 3600;  // GMT+8
+const int daylightOffset_sec = 0;
 
-<header>INTELLIROOM DASHBOARD</header>
+// -----------------------------
+// Get timestamp function
+// -----------------------------
+String getTimestamp() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    return "unknown-time";
+  }
 
-<div class="container">
-    <h2>Device Status</h2>
+  char buffer[25];
+  strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+  return String(buffer);
+}
 
-    <div class="status-box">
-        <p><span class="label">Temperature:</span> <span id="temperature">Loading...</span></p>
-        <p><span class="label">Humidity:</span> <span id="humidity">Loading...</span></p>
-        <p><span class="label">Motion:</span> <span id="motion">Loading...</span></p>
-        <p><span class="label">Light Status:</span> <span id="lightStatus">Loading...</span></p>
-    </div>
-</div>
+// -----------------------------
+// Setup
+// -----------------------------
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
 
-<!-- Firebase Setup -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
-    import { firebaseConfig } from "./firebaseConfig.js";
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW);
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
+  // WiFi
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi!");
 
-    // References in Realtime Database
-    const tempRef = ref(database, "Sensor/temperature");
-    const humRef = ref(database, "Sensor/humidity");
-    const motionRef = ref(database, "Sensor/motion");
-    const lightRef = ref(database, "Device/lightStatus");
+  // Sync NTP
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  struct tm timeinfo;
+  while (!getLocalTime(&timeinfo)) {
+    Serial.println("Waiting for NTP time...");
+    delay(1000);
+  }
+  Serial.println("Time synchronized");
 
-    // Live data listeners
-    onValue(tempRef, (snapshot) => {
-        document.getElementById("temperature").innerText = snapshot.val() + " °C";
-    });
+  // Firebase Setup
+  config.api_key = API_KEY;
+  config.database_url = DATABASE_URL;
 
-    onValue(humRef, (snapshot) => {
-        document.getElementById("humidity").innerText = snapshot.val() + " %";
-    });
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
 
-    onValue(motionRef, (snapshot) => {
-        document.getElementById("motion").innerText = snapshot.val() === 1 ? "Detected" : "None";
-    });
+  Serial.println("Connected to Firebase");
+}
 
-    onValue(lightRef, (snapshot) => {
-        document.getElementById("lightStatus").innerText = snapshot.val() ? "ON" : "OFF";
-    });
-</script>
+// -----------------------------
+// Main Loop
+// -----------------------------
+void loop() {
 
-</body>
-</html>
+  // Read temperature
+  temperature = dht.readTemperature();
+  if (isnan(temperature)) {
+    Serial.println("Failed to read DHT11!");
+    delay(1500);
+    return;
+  }
+
+  Serial.print("Temperature: ");
+  Serial.println(temperature);
+
+  // Read Firebase manual mode
+  if (Firebase.getBool(fbdo, "/intelliroom/manualMode"))
+    manualMode = fbdo.boolData();
+
+  if (Firebase.getBool(fbdo, "/intelliroom/manualFanState"))
+    manualFanState = fbdo.boolData();
+
+  // Automatic or manual fan control
+  bool fanOn = (!manualMode) ? (temperature >= TEMP_THRESHOLD) : manualFanState;
+
+  // Only update when changed
+  if (fanOn != lastFanState) {
+    digitalWrite(RELAY_PIN, fanOn ? HIGH : LOW);
+    Firebase.setString(fbdo, "/intelliroom/fanStatus", fanOn ? "ON" : "OFF");
+    lastFanState = fanOn;
+    Serial.println(fanOn ? "Fan ON" : "Fan OFF");
+  }
+
+  // Upload temperature only if changed
+  if (abs(temperature - lastTemp) >= 0.5) {
+    Firebase.setFloat(fbdo, "/intelliroom/temperature", temperature);
+    lastTemp = temperature;
+  }
+
+  // Upload mode
+  Firebase.setBool(fbdo, "/intelliroom/currentModeIsManual", manualMode);
+
+  // -----------------------------
+  // Temperature Logging Every 1 Minute
+  // -----------------------------
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - lastLogTime >= LOG_INTERVAL) {
+    String timestamp = getTimestamp();
+
+    String datePath = timestamp.substring(0, 10); // YYYY-MM-DD
+    String timePath = timestamp.substring(11);    // HH:MM:SS
+
+    String fullPath = "/temperatureLogs/" + datePath + "/" + timePath;
+
+    Serial.print("Saving log: ");
+    Serial.print(fullPath);
+    Serial.print(" = ");
+    Serial.println(temperature);
+
+    Firebase.setFloat(fbdo, fullPath, temperature);
+
+    lastLogTime = currentMillis;
+  }
+
+  delay(1500);
+}
