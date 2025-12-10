@@ -7,8 +7,9 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- FontAwesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
         body {
@@ -41,8 +42,8 @@
             border-radius: 18px;
             padding: 25px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            transition: .3s ease;
         }
         .card:hover {
             transform: translateY(-8px);
@@ -69,6 +70,7 @@
             font-size: 18px;
             cursor: pointer;
         }
+
         .toggleSwitch {
             width: 22px;
             height: 22px;
@@ -86,10 +88,12 @@
             font-weight: 600;
             font-size: 16px;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: .25s ease;
         }
+
         .btn-green { background: #00ff95; color: #0a0a0a; }
         .btn-green:hover { background: #00cc77; }
+
         .btn-red { background: #ff4d6d; color: #fff; }
         .btn-red:hover { background: #e63950; }
 
@@ -126,6 +130,7 @@
         }
     </style>
 </head>
+
 <body>
 
 <h1>IntelliRoom Dashboard</h1>
@@ -139,14 +144,14 @@
         <p id="temp" class="value">-- °C</p>
     </div>
 
-    <!-- Fan Status Card -->
+    <!-- Fan Status -->
     <div class="card">
         <div class="icon"><i class="fas fa-fan"></i></div>
         <h2>Fan Status</h2>
-        <p id="fanStatus" class="value status">OFF</p>
+        <p id="fanStatus" class="value">OFF</p>
     </div>
 
-    <!-- Mode Control Card -->
+    <!-- Mode Control -->
     <div class="card">
         <div class="icon"><i class="fas fa-sliders-h"></i></div>
         <h2>Control Mode</h2>
@@ -156,7 +161,7 @@
         </label>
     </div>
 
-    <!-- Manual Fan Control Card -->
+    <!-- Manual Fan Buttons -->
     <div class="card">
         <div class="icon"><i class="fas fa-hand-pointer"></i></div>
         <h2>Manual Fan Control</h2>
@@ -181,79 +186,84 @@
     <tbody id="logTable"></tbody>
 </table>
 
-<!-- Firebase & JS -->
+
+<!-- FIREBASE JS -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, set, onValue, update, get, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc",
-    authDomain: "intelliroom-50474.firebaseapp.com",
-    databaseURL: "https://intelliroom-50474-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "intelliroom-50474",
-    storageBucket: "intelliroom-50474.firebasestorage.app",
-    messagingSenderId: "391776071622",
-    appId: "1:391776071622:web:e215eb5a58179881654cc7"
-};
+import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
 
-// Init Firebase
+import {
+    getDatabase, ref, set, onValue
+} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+
+import { firebaseConfig } from "./firebaseConfig.js";
+
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// References
+// Database references
 const tempRef = ref(db, "intelliroom/temperature");
 const fanRef = ref(db, "intelliroom/fanStatus");
 const manualModeRef = ref(db, "intelliroom/manualMode");
-const manualFanStateRef = ref(db, "intelliroom/manualFanState");
+const manualFanRef = ref(db, "intelliroom/manualFanState");
 const logsRef = ref(db, "temperatureLogs");
 
-// ===== REALTIME TEMPERATURE =====
-onValue(tempRef, snapshot => {
-    const temp = snapshot.val();
-    if (temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+
+// ========== LIVE TEMPERATURE ==========
+onValue(tempRef, snap => {
+    if (snap.exists()) {
+        document.getElementById("temp").innerText =
+            snap.val().toFixed(1) + " °C";
+    }
 });
 
-// ===== REALTIME FAN STATUS =====
-onValue(fanRef, snapshot => {
-    const stat = snapshot.val();
-    document.getElementById("fanStatus").innerText = stat;
+// ========== FAN STATUS ==========
+onValue(fanRef, snap => {
+    if (snap.exists()) {
+        document.getElementById("fanStatus").innerText = snap.val();
+    }
 });
 
-// ===== SYNC MANUAL MODE TOGGLE =====
-onValue(manualModeRef, snapshot => {
-    document.getElementById("toggleMode").checked = snapshot.val();
+// ========== MODE TOGGLE ==========
+onValue(manualModeRef, snap => {
+    document.getElementById("toggleMode").checked = snap.val();
 });
 
-// ===== MANUAL MODE CONTROL =====
-document.getElementById("toggleMode").addEventListener("change", function() {
-    set(manualModeRef, this.checked);
+document.getElementById("toggleMode").addEventListener("change", e => {
+    set(manualModeRef, e.target.checked);
 });
 
-// Manual Fan ON / OFF
-document.getElementById("fanOn").addEventListener("click", () => set(manualFanStateRef, true));
-document.getElementById("fanOff").addEventListener("click", () => set(manualFanStateRef, false));
+// ========== MANUAL FAN ON/OFF ==========
+document.getElementById("fanOn").addEventListener("click", () => {
+    set(manualFanRef, true);
+});
+document.getElementById("fanOff").addEventListener("click", () => {
+    set(manualFanRef, false);
+});
 
-// ===== LOAD TEMPERATURE LOGS =====
-onValue(logsRef, snapshot => {
-    const data = snapshot.val();
+// ========== LOGS ==========
+onValue(logsRef, snap => {
+    const logs = snap.val();
     const table = document.getElementById("logTable");
     table.innerHTML = "";
 
-    if (data) {
-        Object.keys(data).forEach(date => {
-            Object.keys(data[date]).forEach(time => {
-                const temp = data[date][time];
-                table.innerHTML += `
-                    <tr>
-                        <td>${date}</td>
-                        <td>${time}</td>
-                        <td>${temp} °C</td>
-                    </tr>
-                `;
-            });
+    if (!logs) return;
+
+    Object.keys(logs).forEach(date => {
+        Object.keys(logs[date]).forEach(time => {
+            table.innerHTML += `
+                <tr>
+                    <td>${date}</td>
+                    <td>${time}</td>
+                    <td>${logs[date][time]} °C</td>
+                </tr>
+            `;
         });
-    }
+    });
 });
+
 </script>
 
 </body>
