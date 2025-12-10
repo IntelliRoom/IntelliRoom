@@ -1,175 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IntelliRoom Dashboard</title>
+    <meta charset="UTF-8">
+    <title>INTELLIROOM Dashboard</title>
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 
-  <!-- CSS DESIGN -->
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f3f4f6;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .container {
-      width: 95%;
-      max-width: 550px;
-      background: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #4f46e5;
-    }
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    }
-    .label {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-    }
-    .value {
-      font-size: 20px;
-      font-weight: 600;
-      margin-top: 10px;
-      color: #4f46e5;
-    }
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    /* Toggle Switch */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 60px;
-      height: 32px;
-    }
-    .switch input {
-      display: none;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 26px; width: 26px;
-      left: 3px; bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    input:checked + .slider {
-      background-color: #4f46e5;
-    }
-    input:checked + .slider:before {
-      transform: translateX(28px);
-    }
-  </style>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #0f0f1f;
+            margin: 0;
+            padding: 50px 20px;
+            color: #fff;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 38px;
+            font-weight: 700;
+            margin-bottom: 50px;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            background: #1c1c2c;
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+        }
+
+        .icon i {
+            font-size: 50px;
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .value {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .status { color: #ff6b6b; }
+
+        .toggleLabel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .toggleSwitch {
+            width: 22px;
+            height: 22px;
+            accent-color: #00d4ff;
+            cursor: pointer;
+        }
+
+        .btn-group { margin-top: 15px; }
+
+        .btn {
+            padding: 12px 22px;
+            margin: 6px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .btn-green { background: #00ff95; color: #0a0a0a; }
+        .btn-green:hover { background: #00cc77; }
+        .btn-red { background: #ff4d6d; color: #fff; }
+        .btn-red:hover { background: #e63950; }
+
+        .history-title {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 32px;
+            color: #00d4ff;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #1c1c2c;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+
+        th {
+            background: #00d4ff;
+            color: #000;
+            font-weight: 700;
+        }
+
+        tr:hover {
+            background: #23233a;
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>IntelliRoom Dashboard</h1>
+<h1>IntelliRoom Dashboard</h1>
 
-  <!-- Manual Mode Card -->
-  <div class="card">
-    <div class="label">Manual Mode</div>
-    <div class="value" id="manualModeValue">Loading...</div>
+<div class="dashboard-container">
 
-    <label class="switch">
-      <input type="checkbox" id="manualModeSwitch">
-      <span class="slider"></span>
-    </label>
-  </div>
+    <!-- Temperature Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-temperature-high"></i></div>
+        <h2>Temperature</h2>
+        <p id="temp" class="value">-- °C</p>
+    </div>
 
-  <!-- Manual Fan Control Card -->
-  <div class="card">
-    <div class="label">Manual Fan State</div>
-    <div class="value" id="manualFanValue">Loading...</div>
+    <!-- Fan Status Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-fan"></i></div>
+        <h2>Fan Status</h2>
+        <p id="fanStatus" class="value status">OFF</p>
+    </div>
 
-    <label class="switch">
-      <input type="checkbox" id="manualFanSwitch">
-      <span class="slider"></span>
-    </label>
-  </div>
+    <!-- Mode Control Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-sliders-h"></i></div>
+        <h2>Control Mode</h2>
+        <label class="toggleLabel" id="modeLabel">
+            <input type="checkbox" id="toggleMode" class="toggleSwitch">
+            Manual Mode
+        </label>
+    </div>
+
+    <!-- Manual Fan Control Card -->
+    <div class="card">
+        <div class="icon"><i class="fas fa-hand-pointer"></i></div>
+        <h2>Manual Fan Control</h2>
+        <div class="btn-group">
+            <button id="fanOn" class="btn btn-green">Turn ON</button>
+            <button id="fanOff" class="btn btn-red">Turn OFF</button>
+        </div>
+    </div>
 
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+<h2 class="history-title">Temperature History Logs</h2>
 
-<script>
-  // Your Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc",
-    authDomain: "intelliroom-50474.firebaseapp.com",
-    databaseURL: "https://intelliroom-50474-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "intelliroom-50474",
-    storageBucket: "intelliroom-50474.firebasestorage.app",
-    messagingSenderId: "391776071622",
-    appId: "1:391776071622:web:e215eb5a58179881654cc7"
-  };
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Temperature (°C)</th>
+        </tr>
+    </thead>
+    <tbody id="logTable"></tbody>
+</table>
 
-  // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+<!-- Firebase & JS -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { firebaseConfig } from "./firebaseConfig.js";
 
-  // References
-  const refMode = db.ref("intelliroom/manualMode");
-  const refFan = db.ref("intelliroom/manualFanState");
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  // HTML elements
-  const manualModeValue = document.getElementById("manualModeValue");
-  const manualFanValue = document.getElementById("manualFanValue");
-  const manualModeSwitch = document.getElementById("manualModeSwitch");
-  const manualFanSwitch = document.getElementById("manualFanSwitch");
+// References
+const tempRef = ref(db, "intelliroom/temperature");
+const fanRef = ref(db, "intelliroom/fanStatus");
+const manualModeRef = ref(db, "intelliroom/manualMode");
+const manualFanStateRef = ref(db, "intelliroom/manualFanState");
+const logsRef = ref(db, "temperatureLogs");
 
-  // REAL-TIME LISTENERS
-  refMode.on("value", (snapshot) => {
-    const val = snapshot.val();
-    manualModeValue.textContent = val ? "ON" : "OFF";
-    manualModeSwitch.checked = val;
-  });
+// REALTIME TEMPERATURE
+onValue(tempRef, snapshot => {
+    const temp = snapshot.val();
+    if (temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+});
 
-  refFan.on("value", (snapshot) => {
-    const val = snapshot.val();
-    manualFanValue.textContent = val ? "ON" : "OFF";
-    manualFanSwitch.checked = val;
-  });
+// REALTIME FAN STATUS
+onValue(fanRef, snapshot => {
+    const stat = snapshot.val();
+    document.getElementById("fanStatus").innerText = stat ? "ON" : "OFF";
+});
 
-  // SWITCH EVENTS → UPDATE DATABASE
-  manualModeSwitch.addEventListener("change", () => {
-    refMode.set(manualModeSwitch.checked);
-  });
+// SYNC MANUAL MODE TOGGLE
+onValue(manualModeRef, snapshot => {
+    const mode = snapshot.val();
+    document.getElementById("toggleMode").checked = mode;
+    document.getElementById("modeLabel").innerText = mode ? "Manual Mode" : "Automatic Mode";
+});
 
-  manualFanSwitch.addEventListener("change", () => {
-    refFan.set(manualFanSwitch.checked);
-  });
+// MANUAL MODE CONTROL
+document.getElementById("toggleMode").addEventListener("change", function() {
+    set(manualModeRef, this.checked);
+});
 
-</script>
+// MANUAL FAN CONTROL
+document.getElementById("fanOn").addEventListener("click", () => set(manualFanStateRef, true));
+document.getElementById("fanOff").addEventListener("click", () => set(manualFanStateRef, false));
 
-</body>
-</html>
+// TEMPERATURE LOGS
+onValue(logsRef, snapshot => {
+    const data = snapshot.val();
+    const table = document.getElementById("logTable");
+    table.innerHTML = "";
+
+    if (data) {
+        Object.keys(data).forEach(date => {
+            Object.keys(data[date]).forEach(time => {
+                const temp = data[date][time];
+                table.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${time}</td>
