@@ -44,7 +44,6 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
         .card:hover {
             transform: translateY(-8px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.8);
@@ -62,10 +61,6 @@
             margin: 10px 0;
         }
 
-        .status {
-            color: #ff6b6b;
-        }
-
         .toggleLabel {
             display: flex;
             align-items: center;
@@ -74,7 +69,6 @@
             font-size: 18px;
             cursor: pointer;
         }
-
         .toggleSwitch {
             width: 22px;
             height: 22px;
@@ -82,9 +76,7 @@
             cursor: pointer;
         }
 
-        .btn-group {
-            margin-top: 15px;
-        }
+        .btn-group { margin-top: 15px; }
 
         .btn {
             padding: 12px 22px;
@@ -96,16 +88,41 @@
             cursor: pointer;
             transition: all 0.25s ease;
         }
-
         .btn-green { background: #00ff95; color: #0a0a0a; }
         .btn-green:hover { background: #00cc77; }
         .btn-red { background: #ff4d6d; color: #fff; }
         .btn-red:hover { background: #e63950; }
 
-        .card h2 {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 10px;
+        .history-title {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 32px;
+            color: #00d4ff;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: #1c1c2c;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+
+        th {
+            background: #00d4ff;
+            color: #000;
+            font-weight: 700;
+        }
+
+        tr:hover {
+            background: #23233a;
         }
     </style>
 </head>
@@ -151,13 +168,24 @@
 
 </div>
 
-<!-- Firebase & App JS -->
+<h2 class="history-title">Temperature History Logs</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Temperature (°C)</th>
+        </tr>
+    </thead>
+    <tbody id="logTable"></tbody>
+</table>
+
+<!-- Firebase & JS -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { getDatabase, ref, set, onValue, update, get, child } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-
-// Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc",
     authDomain: "intelliroom-50474.firebaseapp.com",
@@ -168,7 +196,7 @@ const firebaseConfig = {
     appId: "1:391776071622:web:e215eb5a58179881654cc7"
 };
 
-// Initialize Firebase
+// Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -177,42 +205,56 @@ const tempRef = ref(db, "intelliroom/temperature");
 const fanRef = ref(db, "intelliroom/fanStatus");
 const manualModeRef = ref(db, "intelliroom/manualMode");
 const manualFanStateRef = ref(db, "intelliroom/manualFanState");
+const logsRef = ref(db, "temperatureLogs");
 
-// Realtime temperature
+// ===== REALTIME TEMPERATURE =====
 onValue(tempRef, snapshot => {
     const temp = snapshot.val();
-    if(temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+    if (temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
 });
 
-// Realtime fan status
+// ===== REALTIME FAN STATUS =====
 onValue(fanRef, snapshot => {
-    const status = snapshot.val();
-    if(status !== null) document.getElementById("fanStatus").innerText = status;
+    const stat = snapshot.val();
+    document.getElementById("fanStatus").innerText = stat;
 });
 
-// Sync toggle with manualMode
+// ===== SYNC MANUAL MODE TOGGLE =====
 onValue(manualModeRef, snapshot => {
-    const mode = snapshot.val();
-    if(mode !== null) document.getElementById("toggleMode").checked = mode;
+    document.getElementById("toggleMode").checked = snapshot.val();
 });
 
-// Toggle mode checkbox
+// ===== MANUAL MODE CONTROL =====
 document.getElementById("toggleMode").addEventListener("change", function() {
     set(manualModeRef, this.checked);
 });
 
-// Manual fan ON
-document.getElementById("fanOn").addEventListener("click", () => {
-    set(manualFanStateRef, true);
-});
+// Manual Fan ON / OFF
+document.getElementById("fanOn").addEventListener("click", () => set(manualFanStateRef, true));
+document.getElementById("fanOff").addEventListener("click", () => set(manualFanStateRef, false));
 
-// Manual fan OFF
-document.getElementById("fanOff").addEventListener("click", () => {
-    set(manualFanStateRef, false);
+// ===== LOAD TEMPERATURE LOGS =====
+onValue(logsRef, snapshot => {
+    const data = snapshot.val();
+    const table = document.getElementById("logTable");
+    table.innerHTML = "";
+
+    if (data) {
+        Object.keys(data).forEach(date => {
+            Object.keys(data[date]).forEach(time => {
+                const temp = data[date][time];
+                table.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${time}</td>
+                        <td>${temp} °C</td>
+                    </tr>
+                `;
+            });
+        });
+    }
 });
 </script>
 
 </body>
 </html>
-
-
