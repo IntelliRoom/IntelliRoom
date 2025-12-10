@@ -13,90 +13,116 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // Firebase references
-const tempRef = ref(db, "intelliroom/temperature");
-const fanRef = ref(db, "intelliroom/fanStatus");
-const manualModeRef = ref(db, "intelliroom/manualMode");
-const manualFanStateRef = ref(db, "intelliroom/manualFanState");
-
-// Temperature logs
-const logsRef = ref(db, "temperatureLogs");
+const tempRef = ref(db, "/intelliroom/temperature");
+const fanRef = ref(db, "/intelliroom/fanStatus");
+const manualModeRef = ref(db, "/intelliroom/manualMode");
+const manualFanStateRef = ref(db, "/intelliroom/manualFanState");
+const logsRef = ref(db, "/temperatureLogs");
 
 
 // ------------------------------------------------
-// REALTIME DASHBOARD VALUES
+// REALTIME UPDATES
 // ------------------------------------------------
 
-// Temperature
+// Temperature realtime
 onValue(tempRef, (snapshot) => {
     const temp = snapshot.val();
-    if (temp !== null) {
-        document.getElementById("temp").innerText = `${temp.toFixed(1)} °C`;
+    if (temp !== null && document.getElementById("temp")) {
+        document.getElementById("temp").innerHTML = temp.toFixed(1) + " °C";
     }
 });
 
-// Fan status
+// Fan status realtime
 onValue(fanRef, (snapshot) => {
     const status = snapshot.val();
-    if (status !== null) {
-        document.getElementById("fanStatus").innerText = status;
+    if (status !== null && document.getElementById("fanStatus")) {
+        document.getElementById("fanStatus").innerHTML = status ? "ON" : "OFF";
     }
 });
 
-// Mode toggle sync
+// Manual Mode realtime
 onValue(manualModeRef, (snapshot) => {
     const mode = snapshot.val();
-    if (mode !== null) {
-        document.getElementById("toggleMode").checked = mode;
+    const toggle = document.getElementById("toggleMode");
+
+    if (mode !== null && toggle) {
+        toggle.checked = mode;
+        document.getElementById("modeLabel").innerHTML = mode ? "Manual Mode" : "Automatic Mode";
+    }
+});
+
+// Manual Fan State realtime
+onValue(manualFanStateRef, (snapshot) => {
+    const fanState = snapshot.val();
+    const fanSwitch = document.getElementById("manualFanSwitch");
+
+    if (fanState !== null && fanSwitch) {
+        fanSwitch.checked = fanState;
     }
 });
 
 
 // ------------------------------------------------
-// MANUAL FAN CONTROLS
+// CONTROLS (Buttons & Switches)
 // ------------------------------------------------
 
-// Toggle auto/manual mode
-document.getElementById("toggleMode").addEventListener("change", function () {
-    set(manualModeRef, this.checked);
-});
+// Toggle Manual Mode
+const toggleMode = document.getElementById("toggleMode");
+if (toggleMode) {
+    toggleMode.addEventListener("change", function() {
+        set(manualModeRef, this.checked);
+    });
+}
 
-// Manual fan ON
-document.getElementById("fanOn").addEventListener("click", () => {
-    set(manualFanStateRef, true);
-});
+// Manual Fan On/Off buttons
+const fanOnBtn = document.getElementById("fanOn");
+if (fanOnBtn) {
+    fanOnBtn.addEventListener("click", function() {
+        set(manualFanStateRef, true);
+    });
+}
 
-// Manual fan OFF
-document.getElementById("fanOff").addEventListener("click", () => {
-    set(manualFanStateRef, false);
-});
+const fanOffBtn = document.getElementById("fanOff");
+if (fanOffBtn) {
+    fanOffBtn.addEventListener("click", function() {
+        set(manualFanStateRef, false);
+    });
+}
+
+// Manual Fan Switch (if using toggle)
+const manualFanSwitch = document.getElementById("manualFanSwitch");
+if (manualFanSwitch) {
+    manualFanSwitch.addEventListener("change", function() {
+        set(manualFanStateRef, this.checked);
+    });
+}
 
 
 // ------------------------------------------------
-// LOAD TEMPERATURE LOG HISTORY
+// TEMPERATURE LOGS
 // ------------------------------------------------
 
 onValue(logsRef, (snapshot) => {
     const data = snapshot.val();
     const table = document.getElementById("logTable");
 
-    if (!table) return;  // Safety if not on index.php page
+    if (!table) return;
 
     table.innerHTML = "";
 
-    if (!data) return;
+    if (data) {
+        Object.keys(data).forEach(date => {
+            Object.keys(data[date]).forEach(time => {
+                const temp = data[date][time];
 
-    // Loop through date → time → temperature
-    Object.keys(data).forEach(date => {
-        Object.keys(data[date]).forEach(time => {
-            const temp = data[date][time];
-
-            table.innerHTML += `
-                <tr>
-                    <td>${date}</td>
-                    <td>${time}</td>
-                    <td>${temp} °C</td>
-                </tr>
-            `;
+                table.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${time}</td>
+                        <td>${temp} °C</td>
+                    </tr>
+                `;
+            });
         });
-    });
+    }
 });
