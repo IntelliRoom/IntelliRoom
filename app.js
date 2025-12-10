@@ -13,24 +13,24 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // Firebase references
-const tempRef = ref(db, "/intelliroom/temperature");
-const fanRef = ref(db, "/intelliroom/fanStatus");
-const manualModeRef = ref(db, "/intelliroom/manualMode");
-const manualFanStateRef = ref(db, "/intelliroom/manualFanState");
+const tempRef = ref(db, "intelliroom/temperature");
+const fanRef = ref(db, "intelliroom/fanStatus");
+const manualModeRef = ref(db, "intelliroom/manualMode");
+const manualFanStateRef = ref(db, "intelliroom/manualFanState");
 
-// NEW: Temperature logs reference
-const logsRef = ref(db, "/temperatureLogs");
+// Temperature logs
+const logsRef = ref(db, "temperatureLogs");
 
 
 // ------------------------------------------------
-// Realtime Updates
+// REALTIME DASHBOARD VALUES
 // ------------------------------------------------
 
 // Temperature
 onValue(tempRef, (snapshot) => {
     const temp = snapshot.val();
     if (temp !== null) {
-        document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
+        document.getElementById("temp").innerText = `${temp.toFixed(1)} °C`;
     }
 });
 
@@ -42,7 +42,7 @@ onValue(fanRef, (snapshot) => {
     }
 });
 
-// Manual/Auto Mode toggle
+// Mode toggle sync
 onValue(manualModeRef, (snapshot) => {
     const mode = snapshot.val();
     if (mode !== null) {
@@ -52,53 +52,51 @@ onValue(manualModeRef, (snapshot) => {
 
 
 // ------------------------------------------------
-// Manual Fan Controls
+// MANUAL FAN CONTROLS
 // ------------------------------------------------
 
-// Toggle mode checkbox
-document.getElementById("toggleMode").addEventListener("change", function() {
+// Toggle auto/manual mode
+document.getElementById("toggleMode").addEventListener("change", function () {
     set(manualModeRef, this.checked);
 });
 
 // Manual fan ON
-document.getElementById("fanOn").addEventListener("click", function() {
+document.getElementById("fanOn").addEventListener("click", () => {
     set(manualFanStateRef, true);
 });
 
 // Manual fan OFF
-document.getElementById("fanOff").addEventListener("click", function() {
+document.getElementById("fanOff").addEventListener("click", () => {
     set(manualFanStateRef, false);
 });
 
 
 // ------------------------------------------------
-// NEW: Temperature Log History Loader
+// LOAD TEMPERATURE LOG HISTORY
 // ------------------------------------------------
 
 onValue(logsRef, (snapshot) => {
     const data = snapshot.val();
     const table = document.getElementById("logTable");
 
-    if (!table) return; // index.php safety
+    if (!table) return;  // Safety if not on index.php page
 
     table.innerHTML = "";
 
-    if (data) {
-        // Loop through date → time → temperature
-        Object.keys(data).forEach(date => {
-            Object.keys(data[date]).forEach(time => {
+    if (!data) return;
 
-                const temp = data[date][time];
+    // Loop through date → time → temperature
+    Object.keys(data).forEach(date => {
+        Object.keys(data[date]).forEach(time => {
+            const temp = data[date][time];
 
-                table.innerHTML += `
-                    <tr>
-                        <td>${date}</td>
-                        <td>${time}</td>
-                        <td>${temp} °C</td>
-                    </tr>
-                `;
-            });
+            table.innerHTML += `
+                <tr>
+                    <td>${date}</td>
+                    <td>${time}</td>
+                    <td>${temp} °C</td>
+                </tr>
+            `;
         });
-    }
+    });
 });
-
