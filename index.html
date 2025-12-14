@@ -183,62 +183,6 @@
     <tbody id="logTable"></tbody>
 </table>
 
-<!-- Firebase & JS -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-import { firebaseConfig } from "./firebaseConfig.js";
+</body>
+</html>
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// References
-const tempRef = ref(db, "intelliroom/temperature");
-const fanRef = ref(db, "intelliroom/fanStatus");
-const manualModeRef = ref(db, "intelliroom/manualMode");
-const manualFanStateRef = ref(db, "intelliroom/manualFanState");
-const logsRef = ref(db, "temperatureLogs");
-
-// REALTIME TEMPERATURE
-onValue(tempRef, snapshot => {
-    const temp = snapshot.val();
-    if (temp !== null) document.getElementById("temp").innerText = temp.toFixed(1) + " °C";
-});
-
-// REALTIME FAN STATUS
-onValue(fanRef, snapshot => {
-    const stat = snapshot.val();
-    document.getElementById("fanStatus").innerText = stat ? "ON" : "OFF";
-});
-
-// SYNC MANUAL MODE TOGGLE
-onValue(manualModeRef, snapshot => {
-    const mode = snapshot.val();
-    document.getElementById("toggleMode").checked = mode;
-    document.getElementById("modeLabel").innerText = mode ? "Manual Mode" : "Automatic Mode";
-});
-
-// MANUAL MODE CONTROL
-document.getElementById("toggleMode").addEventListener("change", function() {
-    set(manualModeRef, this.checked);
-});
-
-// MANUAL FAN CONTROL
-document.getElementById("fanOn").addEventListener("click", () => set(manualFanStateRef, true));
-document.getElementById("fanOff").addEventListener("click", () => set(manualFanStateRef, false));
-
-// TEMPERATURE LOGS
-onValue(logsRef, snapshot => {
-    const data = snapshot.val();
-    const table = document.getElementById("logTable");
-    table.innerHTML = "";
-
-    if (data) {
-        Object.keys(data).forEach(date => {
-            Object.keys(data[date]).forEach(time => {
-                const temp = data[date][time];
-                table.innerHTML += `
-                    <tr>
-                        <td>${date}</td>
-                        <td>${time}</td>
