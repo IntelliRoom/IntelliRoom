@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { get, getDatabase, ref, set, onValue,onChildAdded, query, limitToLast } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+import { get, getDatabase, ref, set, onValue,onChildAdded, query, limitToLast, update } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAv_ZS8PLXoTcDIXkE-deVKgTPgIUchKJc",
@@ -21,6 +21,7 @@ const currentTempRef = ref(db, 'intelliroom/Current_Temperature');
 const logRef = ref(db, 'temperature');
 const logTable = document.getElementById('logTable');
 const recentLogQuery = query(logRef, limitToLast(50));
+const fanStatusRef = ref(db, 'intelliroom/fan_status');
 
 // ------------------------------------------------
 // REALTIME UPDATES
@@ -111,4 +112,52 @@ onChildAdded(logRef, (snapshot) => {
     `;
     logTable.insertAdjacentHTML('afterbegin', newRowHTML);
     console.log("New record added successfully (via onChildAdded).");
+});
+
+document.addEventListener('controlModeChanged', function(e) {
+    // e.detail contains the data passed from domScript.js
+    const isManual = e.detail.isManual; 
+    
+    // Execute the Firebase update using the encapsulated db, ref, update variables
+    update(ref(db, 'intelliroom'), { 
+        manualMode: isManual 
+    })
+    .then(() => {
+        console.log(`[app.js] Firebase updated via event: manualMode set to ${isManual}`);
+    })
+    .catch((error) => {
+        console.error("[app.js] Firebase write error for manualMode:", error);
+    });
+});
+
+document.addEventListener('fanControlChanged', function(e) {
+    const fanCommand = e.detail.state; 
+    
+    // Convert the 'ON'/'OFF' command into the required boolean for Firebase
+    const firebaseStatus = (fanCommand === 'ON'); // true if 'ON', false if 'OFF'
+    
+    // Execute the Firebase update 
+    update(ref(db, 'intelliroom'), { 
+        manualFanState: firebaseStatus 
+    })
+    .then(() => {
+        console.log(`[app.js] Firebase updated via event: manualFanStatus set to ${firebaseStatus} (${fanCommand}).`);
+    })
+    .catch((error) => {
+        console.error("[app.js] Firebase write error for manualFanStatus:", error);
+    });
+});
+
+onValue(fanStatusRef, (snapshot) => {
+    const isFanOn = snapshot.val(); 
+
+    // Dispatch a custom event to inform the DOM script about the new status
+    const statusEvent = new CustomEvent('firebaseFanStatusUpdate', {
+        detail: {
+            state: isFanOn
+        }
+    });
+    document.dispatchEvent(statusEvent);
+    
+    console.log("Firebase: New fan status received: " + isFanOn);
 });
