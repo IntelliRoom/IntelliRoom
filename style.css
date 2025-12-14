@@ -73,7 +73,7 @@
             /* Add a small margin to separate from the H2 above */
             margin-top: 15px; 
         }
-        
+
         /* Ensure the buttons themselves are styled for spacing, if not already */
         .btn-group button {
             /* This ensures that when both are briefly visible during development, they are spaced apart */
@@ -195,3 +195,12 @@
         .toggleSwitch:checked ~ .mode-text {
             color: #2196F3;
         }
+        
+.status-on {
+    color: #4CAF50; /* Green color for ON */
+    font-weight: bold;
+}
+.status-off {
+    color: #F44336; /* Red color for OFF */
+    font-weight: bold;
+}
