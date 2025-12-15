@@ -23,6 +23,11 @@ const logTable = document.getElementById('logTable');
 const recentLogQuery = query(logRef, limitToLast(50));
 const fanStatusRef = ref(db, 'intelliroom/fan_status');
 
+let currentFanStatus = false;
+const fanStatusRefForLog = ref(db, 'intelliroom/fan_status');
+onValue(fanStatusRefForLog, (snapshot) => {
+    currentFanStatus = snapshot.val(); 
+});
 // ------------------------------------------------
 // REALTIME UPDATES
 // ------------------------------------------------
@@ -60,6 +65,7 @@ get(recentLogQuery)
                 const time = dateTime[1];
                 const rawTemp = parseFloat(data.Temperature);
                 const temperatureValue = isNaN(rawTemp) ? 'N/A' : rawTemp.toFixed(2);
+                const fanStatusText = 'N/A';
                 // Build HTML string for the current record
                 const rowHTML = `
                     <tr>
@@ -67,6 +73,7 @@ get(recentLogQuery)
                         <td>${time}</td>
                         <td>${temperatureValue} °C</td>
                         <td>${fanStatus}</td>
+                        <td>${fanStatusText}</td>
                     </tr>
                 `;
                 // Prepend the new row to the existing content string (Newest on top)
@@ -102,6 +109,7 @@ onChildAdded(logRef, (snapshot) => {
     const time = dateTime[1];
     const rawTemp = parseFloat(data.Temperature);
     const temperatureValue = isNaN(rawTemp) ? 'N/A' : rawTemp.toFixed(2);
+    const fanStatusText = currentFanStatus ? 'ON' : 'OFF';
 
     // Create the HTML for the single new row
     const newRowHTML = `
@@ -110,6 +118,7 @@ onChildAdded(logRef, (snapshot) => {
             <td>${time}</td>
             <td>${temperatureValue} °C</td>
             <td>${fanStatus}</td>
+            <td>${fanStatusText}</td>
         </tr>
     `;
     logTable.insertAdjacentHTML('afterbegin', newRowHTML);
@@ -163,4 +172,5 @@ onValue(fanStatusRef, (snapshot) => {
     
     console.log("Firebase: New fan status received: " + isFanOn);
 });
+
 
