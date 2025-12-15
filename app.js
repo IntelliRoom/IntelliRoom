@@ -72,7 +72,6 @@ get(recentLogQuery)
                         <td>${date}</td>
                         <td>${time}</td>
                         <td>${temperatureValue} °C</td>
-                        <td>${fanStatus}</td>
                         <td>${fanStatusText}</td>
                     </tr>
                 `;
@@ -116,8 +115,7 @@ onChildAdded(logRef, (snapshot) => {
         <tr>
             <td>${date}</td>
             <td>${time}</td>
-            <td>${temperatureValue} °C</td>
-            <td>${fanStatus}</td>
+            <td>${temperatureValue} °C</>
             <td>${fanStatusText}</td>
         </tr>
     `;
@@ -172,5 +170,6 @@ onValue(fanStatusRef, (snapshot) => {
     
     console.log("Firebase: New fan status received: " + isFanOn);
 });
+
 
 
