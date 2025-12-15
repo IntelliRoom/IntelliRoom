@@ -66,6 +66,7 @@ get(recentLogQuery)
                         <td>${date}</td>
                         <td>${time}</td>
                         <td>${temperatureValue} °C</td>
+                        <td>${fanStatus}</td>
                     </tr>
                 `;
                 // Prepend the new row to the existing content string (Newest on top)
@@ -108,6 +109,7 @@ onChildAdded(logRef, (snapshot) => {
             <td>${date}</td>
             <td>${time}</td>
             <td>${temperatureValue} °C</td>
+            <td>${fanStatus}</td>
         </tr>
     `;
     logTable.insertAdjacentHTML('afterbegin', newRowHTML);
@@ -161,3 +163,4 @@ onValue(fanStatusRef, (snapshot) => {
     
     console.log("Firebase: New fan status received: " + isFanOn);
 });
+
